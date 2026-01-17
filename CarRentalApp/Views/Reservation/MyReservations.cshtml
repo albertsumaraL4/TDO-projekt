@@ -1,0 +1,30 @@
+﻿@model IEnumerable<CarRentalApp.Models.Reservation>
+
+@{
+    ViewData["Title"] = "Moje Rezerwacje";
+}
+
+<h1>Moje Rezerwacje</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Samochód:</th>
+            <th>Od kiedy:</th>
+            <th>Do kiedy:</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@item.Car.Make @item.Car.Model</td>
+            <td>@item.StartDate.ToShortDateString()</td>
+            <td>@item.EndDate.ToShortDateString()</td>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,27 @@
+﻿@model CarRentalApp.Models.CarCategory
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Do usunięcia.</h1>
+
+<h3>Czy na pewno chcesz usunąć ten rodzaj pojazdu?</h3>
+<div>
+    <h4>Kategoria pojazdu</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Typ pojazdu:
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Usuń" class="btn btn-danger" /> |
+        <a asp-action="Index">Powrót</a>
+    </form>
+</div>

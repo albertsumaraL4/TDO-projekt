@@ -1,0 +1,71 @@
+﻿@model CarRentalApp.Models.Reservation
+
+@{
+    ViewData["Title"] = "Details";
+
+    var totalDays = (Model.EndDate - Model.StartDate).Days;
+    if (totalDays <= 0) totalDays = 1;
+
+    var totalPrice = totalDays * Model.Car.PricePerDay;
+}
+
+<h1>Informacje</h1>
+
+<div>
+    <h4>Rezerwacja.</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Użytkownik:</dt>
+        <dd class="col-sm-10">
+            @Model.User.FirstName @Model.User.LastName (@Model.User.Email)
+        </dd>
+
+        <dt class="col-sm-2">
+            Samochód:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Car.Make) @Html.DisplayFor(model => model.Car.Model)
+        </dd>
+
+        <dt class="col-sm-2">
+            Od kiedy:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.StartDate)
+        </dd>
+
+        <dt class="col-sm-2">
+            Do kiedy:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.EndDate)
+        </dd>
+
+        <hr />
+
+        <dt class="col-sm-2">
+            Cena za dzień
+        </dt>
+        <dd class="col-sm-10 text-primary fw-bold">
+            @Model.Car.PricePerDay.ToString("C")
+        </dd>
+
+        <dt class="col-sm-2">
+            Liczba dni
+        </dt>
+        <dd class="col-sm-10">
+            @totalDays
+        </dd>
+
+        <dt class="col-sm-2">
+            Łączny koszt
+        </dt>
+        <dd class="col-sm-10 text-success fw-bold" style="font-size: 1.2em;">
+            @totalPrice.ToString("C")
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edytuj</a> |
+    <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+</div>

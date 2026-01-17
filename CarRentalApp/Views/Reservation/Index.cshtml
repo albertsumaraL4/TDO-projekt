@@ -1,0 +1,62 @@
+﻿@model IEnumerable<CarRentalApp.Models.Reservation>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Strona główna</h1>
+
+<p>
+    <a asp-action="Create">Dodaj nową rezerwację.</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Użytkownik:
+            </th>
+            <th>
+                Samochód:
+            </th>
+            <th>
+                Marka:
+            </th>
+            <th>
+                Od kiedy:
+            </th>
+            <th>
+                Do kiedy:
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Car.Make)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.Car.Model)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndDate)
+            </td>
+            <td>
+                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> 
+                    <a asp-action= "Details" asp-route-id = "@item.Id" >Informacje</a> 
+                    <a asp-action = "Delete" asp-route-id = "@item.Id" >Usuń</a>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
