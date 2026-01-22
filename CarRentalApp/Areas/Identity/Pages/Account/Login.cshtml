@@ -6,9 +6,22 @@
 }
 
 <h1>Zaloguj się!</h1>
+
 <div class="row">
     <div class="col-md-4">
         <section>
+
+            @{
+                var errorMessage = Request.Query["error"].ToString();
+            }
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-warning" role="alert">
+                    @errorMessage
+                </div>
+            }
+
             <form id="account" method="post">
                 <h2>Użyj swojego konta by się zalogować.</h2>
                 <hr />
@@ -29,7 +42,6 @@
             </form>
         </section>
     </div>
-    
 </div>
 
 @section Scripts {

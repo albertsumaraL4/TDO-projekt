@@ -4,7 +4,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Samochody.</h1>
+<h1>Nasze samochody@(ViewBag.CategoryName != null ? " typu " + ViewBag.CategoryName : ""):</h1>
 
 @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
 {

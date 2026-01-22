@@ -2,8 +2,12 @@
 using CarRentalApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+
 
 namespace CarRentalApp.Controllers
 {
@@ -100,5 +104,17 @@ namespace CarRentalApp.Controllers
                 return View();
             }
         }
+        [HttpPost]
+        public IActionResult SaveChosenCategory([FromBody] JsonElement json)
+        {
+            int categoryId = json.GetProperty("categoryId").GetInt32();
+            Console.WriteLine("id z frontu: " +  categoryId);
+            HttpContext.Session.SetInt32("ChosenCategoryId", categoryId);
+
+            return Ok();
+        }
     }
+
+
 }
+

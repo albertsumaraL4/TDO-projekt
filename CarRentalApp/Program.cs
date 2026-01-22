@@ -6,6 +6,14 @@ var connectionString = builder.Configuration.GetConnectionString("AppDbContextCo
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
+builder.Services.AddDistributedMemoryCache(); // wymagane dla sesji w pamiêci
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // czas ¿ycia sesji
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>() .AddEntityFrameworkStores<AppDbContext>();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -16,8 +24,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await CarRentalApp.Models.TworzenieAdmina.InicjalizujRole(services);
-    await CarRentalApp.Models.TworzenieAdmina.InicjalizujKategorie(services);
+    await CarRentalApp.Data.DbInitializer.Initialize(services);
 }
 
 
@@ -33,6 +40,8 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession();
 
 app.MapStaticAssets();
 

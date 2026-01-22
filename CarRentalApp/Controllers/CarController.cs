@@ -19,7 +19,23 @@ namespace CarRentalApp.Controllers
         // GET: CarController
         public ActionResult Index()
         {
-            var cars = _context.Car.Include(c => c.CarCategory).ToList();
+            int? chosenCategoryId = HttpContext.Session.GetInt32("ChosenCategoryId");
+
+            Console.WriteLine("categoryId: " + chosenCategoryId);
+
+            var carsQuery = _context.Car.Include(c => c.CarCategory).AsQueryable();
+
+            if (chosenCategoryId.HasValue && chosenCategoryId.Value != 0)
+            {
+                var category = _context.CarCategories
+                                   .FirstOrDefault(c => c.Id == chosenCategoryId.Value);
+
+                ViewBag.CategoryName = category?.Name;
+
+                carsQuery = carsQuery.Where(c => c.CarCategory.Id == chosenCategoryId.Value);
+            }
+            
+            var cars = carsQuery.ToList();
             return View(cars);
         }
 

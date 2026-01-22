@@ -17,8 +17,35 @@ html {
   min-height: 100%;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 body {
-  margin-bottom: 60px;
+    min-height: 100vh;
+/*    padding-top: 20px;*/
+    background: linear-gradient( 135deg, #0f396e 0%, #2a103b 60%, #0f0f1a 100% );
+    /*    margin-bottom: 60px;*/
+
+    font-family: 'Montserrat', sans-serif;
+    color: white;
+    /* -webkit-text-stroke: 1px black; */
+    background: linear-gradient(135deg, #0f396e 0%, #2a103b 60%, #0f0f1a 100%);
+    line-height: 1.6;
+}
+
+
+a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #a0d8ff;
+}
+
+
+p, h1, h2, h3 {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +55,22 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+.navbar {
+    background: linear-gradient( 135deg, #0b1f3a 0%, #1a0f2e 60%, #080814 100% );
+}
+
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: #bfc9d9 !important;
+}
+
+.navbar .nav-link:hover {
+    color: #a0d8ff !important;
+}
+
+footer {
+    background: linear-gradient( 135deg, #0b1f3a 0%, #1a0f2e 60%, #080814 100% );
+    color: #bfc9d9;
 }

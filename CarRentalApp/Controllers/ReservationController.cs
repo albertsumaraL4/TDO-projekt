@@ -47,46 +47,79 @@ namespace CarRentalApp.Controllers
             return View(reservation);
         }
 
-        // GET: ReservationController/Create
         [Authorize]
-        public ActionResult Create()
+        public IActionResult Create(int? carId)
         {
             ViewBag.Cars = new SelectList(_context.Car.ToList(), "Id", "FullName");
+
+            List<string> blockedDates = new List<string>();
+
+            if (carId.HasValue)
+            {
+                var reservations = _context.Reservations
+                    .Where(r => r.CarId == carId.Value)
+                    .Select(r => new { r.StartDate, r.EndDate })
+                    .ToList();
+
+                foreach (var r in reservations)
+                {
+                    for (var date = r.StartDate.Date; date <= r.EndDate.Date; date = date.AddDays(1))
+                    {
+                        blockedDates.Add(date.ToString("yyyy-MM-dd"));
+                    }
+                }
+            }
+
+            ViewBag.BlockedDates = blockedDates;
+
             return View();
         }
+
+
 
         // POST: ReservationController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create(Reservation reservation)
+        public IActionResult Create(Reservation model)
         {
-            reservation.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ModelState.Remove("UserId"); 
 
-            if (ModelState.IsValid)
+            model.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var existingReservations = _context.Reservations
+                .Where(r => r.CarId == model.CarId)
+                .ToList();
+
+            foreach (var r in existingReservations)
             {
-                bool isCarOccupied = _context.Reservations.Any(r =>
-                    r.CarId == reservation.CarId &&
-                    reservation.StartDate < r.EndDate &&
-                    reservation.EndDate > r.StartDate);
-
-                if (isCarOccupied)
+                if (model.StartDate.Date <= r.EndDate.Date && model.EndDate.Date >= r.StartDate.Date)
                 {
-                    ModelState.AddModelError("", "Przepraszamy, ten samochód jest już zarezerwowany w wybranym terminie.");
-
-                    ViewData["CarId"] = new SelectList(_context.Car, "Id", "Model", reservation.CarId);
-                    return View(reservation);
+                    ModelState.AddModelError("", "Wybrany zakres koliduje z istniejącą rezerwacją.");
+                    break;
                 }
-
-                _context.Add(reservation);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CarId"] = new SelectList(_context.Car , "Id", "Model", reservation.CarId);
-            return View(reservation);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Cars = new SelectList(_context.Car.ToList(), "Id", "FullName", model.CarId);
+
+                List<string> blockedDates = new List<string>();
+                foreach (var r in existingReservations)
+                {
+                    for (var date = r.StartDate.Date; date <= r.EndDate.Date; date = date.AddDays(1))
+                        blockedDates.Add(date.ToString("yyyy-MM-dd"));
+                }
+                ViewBag.BlockedDates = blockedDates;
+
+                return View(model);
+            }
+
+            _context.Reservations.Add(model);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Car");
         }
+
         [Authorize]
         public async Task<IActionResult> MyReservations()
         {
@@ -193,5 +226,13 @@ namespace CarRentalApp.Controllers
                 return View();
             }
         }
+
+        [HttpGet]
+        public IActionResult NotLogged()
+        {
+            return RedirectToPage("/Account/Login", new { area = "Identity", error = "Musisz się zalogować, aby zobaczyć swoje rezerwacje." });
+        }
+
+
     }
 }
