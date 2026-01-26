@@ -47,46 +47,82 @@ namespace CarRentalApp.Controllers
             return View(reservation);
         }
 
-        // GET: ReservationController/Create
         [Authorize]
-        public ActionResult Create()
+        public IActionResult Create(int? carId)
         {
-            ViewBag.Cars = new SelectList(_context.Car.ToList(), "Id", "FullName");
+            ViewBag.Cars = new SelectList(_context.Cars.ToList(), "Id", "FullName");
+
+            List<string> blockedDates = new List<string>();
+
+            if (carId.HasValue)
+            {
+                var reservations = _context.Reservations
+                    .Where(r => r.CarId == carId.Value)
+                    .Select(r => new { r.StartDate, r.EndDate })
+                    .ToList();
+
+                foreach (var r in reservations)
+                {
+                    for (var date = r.StartDate.Date; date <= r.EndDate.Date; date = date.AddDays(1))
+                    {
+                        blockedDates.Add(date.ToString("yyyy-MM-dd"));
+                    }
+                }
+            }
+
+            ViewBag.BlockedDates = blockedDates;
+
             return View();
         }
+
+
 
         // POST: ReservationController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create(Reservation reservation)
+        public IActionResult Create(Reservation model)
         {
-            reservation.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ModelState.Remove("UserId"); 
 
-            if (ModelState.IsValid)
+            model.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var existingReservations = _context.Reservations
+                .Where(r => r.CarId == model.CarId)
+                .ToList();
+
+            foreach (var r in existingReservations)
             {
-                bool isCarOccupied = _context.Reservations.Any(r =>
-                    r.CarId == reservation.CarId &&
-                    reservation.StartDate < r.EndDate &&
-                    reservation.EndDate > r.StartDate);
-
-                if (isCarOccupied)
+                if (model.StartDate.Date <= r.EndDate.Date && model.EndDate.Date >= r.StartDate.Date)
                 {
-                    ModelState.AddModelError("", "Przepraszamy, ten samochód jest już zarezerwowany w wybranym terminie.");
-
-                    ViewData["CarId"] = new SelectList(_context.Car, "Id", "Model", reservation.CarId);
-                    return View(reservation);
+                    ModelState.AddModelError("", "Wybrany zakres koliduje z istniejącą rezerwacją.");
+                    break;
                 }
-
-                _context.Add(reservation);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
             }
 
-            ViewData["CarId"] = new SelectList(_context.Car , "Id", "Model", reservation.CarId);
-            return View(reservation);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Cars = new SelectList(_context.Cars.ToList(), "Id", "FullName", model.CarId);
+
+                List<string> blockedDates = new List<string>();
+                foreach (var r in existingReservations)
+                {
+                    for (var date = r.StartDate.Date; date <= r.EndDate.Date; date = date.AddDays(1))
+                        blockedDates.Add(date.ToString("yyyy-MM-dd"));
+                }
+                ViewBag.BlockedDates = blockedDates;
+
+                return View(model);
+            }
+
+            model.StartDate = model.StartDate.ToUniversalTime();
+            model.EndDate = model.EndDate.ToUniversalTime();
+
+            _context.Reservations.Add(model);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Car");
         }
+
         [Authorize]
         public async Task<IActionResult> MyReservations()
         {
@@ -111,7 +147,7 @@ namespace CarRentalApp.Controllers
                 return NotFound();
 
             ViewBag.Cars = new SelectList(
-                _context.Car.ToList(),
+                _context.Cars.ToList(),
                 "Id",
                 "FullName",
                 reservation.CarId
@@ -143,6 +179,9 @@ namespace CarRentalApp.Controllers
             {
                 try
                 {
+                    reservation.StartDate = reservation.StartDate.ToUniversalTime();
+                    reservation.EndDate = reservation.EndDate.ToUniversalTime();
+
                     _context.Update(reservation);
                     await _context.SaveChangesAsync();
                 }
@@ -193,5 +232,55 @@ namespace CarRentalApp.Controllers
                 return View();
             }
         }
+
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> Cancel(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var reservation = await _context.Reservations
+                .Include(r => r.Car)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id && r.User.UserName == User.Identity.Name);
+
+            if (reservation == null)
+                return NotFound();
+
+            return View(reservation);
+        }
+
+        [HttpPost, ActionName("Cancel")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> CancelConfirmed(int id)
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id && r.User.UserName == User.Identity.Name);
+
+            if (reservation == null)
+                return NotFound();
+
+            try
+            {
+                _context.Reservations.Remove(reservation);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("MyReservations");
+            }
+            catch
+            {
+                return View(reservation);
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult NotLogged()
+        {
+            return RedirectToPage("/Account/Login", new { area = "Identity", error = "Do tej akcji musisz się zalogować." });
+        }
+
+
     }
 }

@@ -19,14 +19,30 @@ namespace CarRentalApp.Controllers
         // GET: CarController
         public ActionResult Index()
         {
-            var cars = _context.Car.Include(c => c.CarCategory).ToList();
+            int? chosenCategoryId = HttpContext.Session.GetInt32("ChosenCategoryId");
+
+            Console.WriteLine("categoryId: " + chosenCategoryId);
+
+            var carsQuery = _context.Cars.Include(c => c.CarCategory).AsQueryable();
+
+            if (chosenCategoryId.HasValue && chosenCategoryId.Value != 0)
+            {
+                var category = _context.CarCategories
+                                   .FirstOrDefault(c => c.Id == chosenCategoryId.Value);
+
+                ViewBag.CategoryName = category?.Name;
+
+                carsQuery = carsQuery.Where(c => c.CarCategory.Id == chosenCategoryId.Value);
+            }
+            
+            var cars = carsQuery.ToList();
             return View(cars);
         }
 
         // GET: CarController/Details/5
         public ActionResult Details(int id)
         {
-            var car = _context.Car.Include(c => c.CarCategory).FirstOrDefault(c => c.Id == id);
+            var car = _context.Cars.Include(c => c.CarCategory).FirstOrDefault(c => c.Id == id);
             if (car == null)
                 return NotFound();
             return View(car);
@@ -47,7 +63,7 @@ namespace CarRentalApp.Controllers
         {
             try
             {
-                _context.Car.Add(car);
+                _context.Cars.Add(car);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
@@ -61,7 +77,7 @@ namespace CarRentalApp.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult Edit(int id)
         {
-            var car = _context.Car.Find(id);
+            var car = _context.Cars.Find(id);
 
             if (car == null)
                 return NotFound();
@@ -84,7 +100,7 @@ namespace CarRentalApp.Controllers
         {
             try
             {
-                _context.Car.Update(car);
+                _context.Cars.Update(car);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
@@ -98,7 +114,7 @@ namespace CarRentalApp.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult Delete(int id)
         {
-            var car = _context.Car.Include(c => c.CarCategory).FirstOrDefault(c => c.Id == id);
+            var car = _context.Cars.Include(c => c.CarCategory).FirstOrDefault(c => c.Id == id);
             if (car == null)
                 return NotFound();
             return View(car);
@@ -112,7 +128,7 @@ namespace CarRentalApp.Controllers
         {
             try
             {
-                _context.Car.Remove(car);
+                _context.Cars.Remove(car);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }

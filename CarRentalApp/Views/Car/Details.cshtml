@@ -7,45 +7,67 @@
 <h1>Informacje o samochodzie.</h1>
 
 <div>
-    <h4>Samochody.</h4>
-    <hr />
+    @* <h4>Samochody.</h4> *@
+    @* <hr /> *@
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             Marka:
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Make)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             Model:
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Model)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             Rok produkcji:
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Year)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             Cena za dzień:
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.PricePerDay)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             Typ pojazdu:
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.CarCategory.Name)
         </dd>
     </dl>
 </div>
-<div>
+
+<div class="mt-3">
     @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
     {
-        <a asp-action="Edit" asp-route-id="@Model?.Id">Edytuj</a>
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edytuj</a>
     }
-    <a asp-action="Index">Powrót</a>
+
+    
+
+    
+
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <a asp-area="" asp-controller="Reservation" asp-action="NotLogged" class="btn btn-primary">Sprawdź dostępność</a>
+    
+    }
+    else
+    {
+
+        <a asp-controller="Reservation" asp-action="Create"
+                asp-route-carId="@Model.Id"
+                class="btn btn-primary">
+            Sprawdź dostępność
+        </a>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+
 </div>

@@ -1,6 +1,28 @@
 ﻿@model IEnumerable<CarRentalApp.Models.CarCategory>
 
 @{
+    ViewData["Title"] = "Kategorie samochodów";
+}
+
+<h1>Kategorie samochodów</h1>
+
+<div id="carCategoryContainer"></div>
+
+<script>
+    const carCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+</script>
+
+<script src="~/js/CategoryChooser.js"></script>
+
+<link rel="stylesheet" href="~/css/categoryStyles.css" />
+
+
+
+
+
+@* @model IEnumerable<CarRentalApp.Models.CarCategory>
+
+@{
     ViewData["Title"] = "Index";
 }
 
@@ -38,4 +60,4 @@
         </tr>
 }
     </tbody>
-</table>
+</table> *@

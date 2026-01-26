@@ -4,46 +4,84 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Stwórz:</h1>
+<h1>Stwórz rezerwację:</h1>
 
-<h4>Rezerwacja.</h4>
-<hr />
-<div class="row">
+@* <h4>Rezerwacja</h4>
+<hr /> *@
+
+<div class="row justify-content-center">
     <div class="col-md-4">
         <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div id="reservationError" class="text-danger mb-2"></div>
 
+
+            <!-- Wybór samochodu -->
             <div class="form-group">
                 <label asp-for="CarId">Samochód</label>
-                <select asp-for="CarId" asp-items="ViewBag.Cars" class="form-control">
+                <select asp-for="CarId"
+                        asp-items="ViewBag.Cars"
+                        class="form-control"
+                        id="carSelect">
                     <option value="">-- wybierz samochód --</option>
                 </select>
                 <span asp-validation-for="CarId" class="text-danger"></span>
             </div>
 
+            <!-- Start rezerwacji -->
             <div class="form-group">
                 <label asp-for="StartDate">Od kiedy:</label>
-                <input asp-for="StartDate" type="date" class="form-control" />
+                <input asp-for="StartDate"
+                       type="text"
+                       class="form-control"
+                       id="startDate" />
                 <span asp-validation-for="StartDate" class="text-danger"></span>
             </div>
 
+            <!-- Koniec rezerwacji -->
             <div class="form-group">
                 <label asp-for="EndDate">Do kiedy:</label>
-                <input asp-for="EndDate" type="date" class="form-control" />
+                <input asp-for="EndDate"
+                       type="text"
+                       class="form-control"
+                       id="endDate" />
                 <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
 
+
+
             <input type="submit" value="Rezerwuj" class="btn btn-primary" />
+            <a asp-controller="Car" asp-action="Index" class="btn btn-secondary">Powrót</a>
+
+
+
+            @* @if (User.IsInRole("User"))
+            {
+                    <a asp-controller="Reservation" asp-action="MyReservations" class="btn btn-secondary">Powrót</a>
+            }
+
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+            } *@
+
+            
         </form>
-
     </div>
-
-</div>
-
-<div>
-    <a asp-action="Index">Powrót</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        window.blockedDates = @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                            ViewBag.BlockedDates ?? new List<string>()
+                    )
+            );
+</script>
+
+    <script src="~/js/reservation.js"></script>
 }
