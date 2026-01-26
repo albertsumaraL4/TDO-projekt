@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -88,7 +88,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": null,
       "options": {
         "legend": {
           "calcs": [],
