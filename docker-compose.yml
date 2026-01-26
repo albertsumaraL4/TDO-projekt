@@ -44,6 +44,7 @@ services:
     image: prom/prometheus:v2.49.1
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
     ports:
       - "9090:9090"
 
@@ -53,6 +54,7 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
 
 volumes:
   mssqldata:
