@@ -51,11 +51,22 @@
 
     
 
-    <a asp-controller="Reservation" asp-action="Create"
-       asp-route-carId="@Model.Id"
-       class="btn btn-primary">
-        Sprawdź dostępność
-    </a>
+    
+
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <a asp-area="" asp-controller="Reservation" asp-action="NotLogged" class="btn btn-primary">Sprawdź dostępność</a>
+    
+    }
+    else
+    {
+
+        <a asp-controller="Reservation" asp-action="Create"
+                asp-route-carId="@Model.Id"
+                class="btn btn-primary">
+            Sprawdź dostępność
+        </a>
+    }
 
     <a asp-action="Index" class="btn btn-secondary">Powrót</a>
 

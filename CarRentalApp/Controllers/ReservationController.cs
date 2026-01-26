@@ -272,7 +272,7 @@ namespace CarRentalApp.Controllers
         [HttpGet]
         public IActionResult NotLogged()
         {
-            return RedirectToPage("/Account/Login", new { area = "Identity", error = "Musisz się zalogować, aby zobaczyć swoje rezerwacje." });
+            return RedirectToPage("/Account/Login", new { area = "Identity", error = "Do tej akcji musisz się zalogować." });
         }
 
 

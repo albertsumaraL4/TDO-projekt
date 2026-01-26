@@ -5,3 +5,5 @@ CarRentalApp/appsettings.Development.json
 # Typowe katalogi buildów dla .NET
 CarRentalApp/bin/
 CarRentalApp/obj/
+
+.vs/
