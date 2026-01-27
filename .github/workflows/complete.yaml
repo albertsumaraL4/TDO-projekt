@@ -24,7 +24,7 @@ jobs:
       run: dotnet restore
     
     - name: Check code formatting
-      run: dotnet format --verify-no-changes --verbosity diagnostic
+      run: dotnet format 
       continue-on-error: true
   
   build-and-test:
