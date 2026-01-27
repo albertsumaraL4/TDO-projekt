@@ -9,11 +9,8 @@ on:
       - 'v*'
       - 'release-*'
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
+  # Job 1: Determine version from git tags
   versioning:
     runs-on: ubuntu-latest
     outputs:
@@ -23,12 +20,21 @@ jobs:
       patch: ${{ steps.version.outputs.patch }}
       is_release: ${{ steps.version.outputs.is_release }}
       docker_tags: ${{ steps.version.outputs.docker_tags }}
+      image_name: ${{ steps.version.outputs.image_name }}
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  
+        fetch-depth: 0  # Full git history for proper versioning
+    
+    - name: Set image name (lowercase)
+      id: image_name
+      run: |
+        # Convert repository name to lowercase for Docker
+        IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+        echo " Docker image name: ghcr.io/${IMAGE_NAME}"
     
     - name: Determine version from git
       id: version
@@ -71,27 +77,31 @@ jobs:
         
         # Generate docker tags
         BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        IMAGE_NAME="${{ steps.image_name.outputs.image_name }}"
         
         if [[ $IS_RELEASE == "true" ]]; then
           # Release tags: v1.2.3, v1.2, v1, latest (only for main)
-          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}"
-          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${MAJOR}.${MINOR}"
-          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${MAJOR}"
+          TAGS="ghcr.io/${IMAGE_NAME}:${VERSION}"
+          TAGS="${TAGS},ghcr.io/${IMAGE_NAME}:${MAJOR}.${MINOR}"
+          TAGS="${TAGS},ghcr.io/${IMAGE_NAME}:${MAJOR}"
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+            TAGS="${TAGS},ghcr.io/${IMAGE_NAME}:latest"
           fi
         else
           # Development tags: branch-commit, branch-version
-          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}-$(git rev-parse --short HEAD)"
-          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${BRANCH_NAME}-${VERSION}"
+          TAGS="ghcr.io/${IMAGE_NAME}:${BRANCH_NAME}-$(git rev-parse --short HEAD)"
+          TAGS="${TAGS},ghcr.io/${IMAGE_NAME}:${BRANCH_NAME}-${VERSION}"
         fi
         
         echo "docker_tags=${TAGS}" >> $GITHUB_OUTPUT
-
+        echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+        
+        echo " Version: ${VERSION}"
+        echo "  Docker tags: ${TAGS}"
     
     - name: Create version summary
       run: |
-        echo "## Version Information" >> $GITHUB_STEP_SUMMARY
+        echo "##  Version Information" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "- **Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Major:** ${{ steps.version.outputs.major }}" >> $GITHUB_STEP_SUMMARY
@@ -99,7 +109,7 @@ jobs:
         echo "- **Patch:** ${{ steps.version.outputs.patch }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Is Release:** ${{ steps.version.outputs.is_release }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Docker Tags:" >> $GITHUB_STEP_SUMMARY
+        echo "###  Docker Tags:" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "${{ steps.version.outputs.docker_tags }}" | tr ',' '\n' >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
@@ -155,7 +165,7 @@ jobs:
     - name: Log in to Container Registry
       uses: docker/login-action@v3
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
@@ -163,7 +173,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ghcr.io/${{ needs.versioning.outputs.image_name }}
         tags: ${{ needs.versioning.outputs.docker_tags }}
         labels: |
           org.opencontainers.image.title=CarRentalApp
@@ -197,7 +207,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "###  Pull command:" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
-        echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.versioning.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "docker pull ghcr.io/${{ needs.versioning.outputs.image_name }}:${{ needs.versioning.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
 
   # Job 4: Create GitHub Release (only for version tags)
@@ -241,7 +251,7 @@ jobs:
           
           ###  Docker Images
           ```bash
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.versioning.outputs.version }}
+          docker pull ghcr.io/${{ needs.versioning.outputs.image_name }}:${{ needs.versioning.outputs.version }}
           ```
           
           ###  Changes
@@ -249,7 +259,7 @@ jobs:
           
           ###  Available Tags
           - `${{ needs.versioning.outputs.version }}` (full version)
-          - `${{ needs.versioning.outputs.major }}.{{ needs.versioning.outputs.minor }}` (major.minor)
+          - `${{ needs.versioning.outputs.major }}.${{ needs.versioning.outputs.minor }}` (major.minor)
           - `${{ needs.versioning.outputs.major }}` (major)
           - `latest` (only on main branch)
         draft: false
