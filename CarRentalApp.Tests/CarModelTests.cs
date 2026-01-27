@@ -32,7 +32,7 @@ namespace CarRentalApp.Tests
 
             var fullName = car.FullName;
 
-            Assert.Equal("Toyota Corolla (2022) � 150 zł/dzień", fullName);
+            Assert.Equal("Toyota Corolla (2022) - 150 zł/dzień", fullName);
         }
 
         // 3. Test walidacji modelu RESERVATION (Logika dat)
@@ -67,4 +67,5 @@ namespace CarRentalApp.Tests
         }
     }
 }
+
 
